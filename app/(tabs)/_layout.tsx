@@ -1,33 +1,44 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { MaterialIcons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
-
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+export default function TabsLayout() {
+  const insets = useSafeAreaInsets();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
         headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarStyle: {
+          paddingBottom: Math.max(insets.bottom, 10),
+          height: 60 + insets.bottom,
+        },
+        tabBarLabelStyle: {
+          fontSize: 12,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Home",
+          tabBarIcon: () => <MaterialIcons name="home" size={24} />,
         }}
       />
+
       <Tabs.Screen
-        name="explore"
+        name="form"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Formulário",
+          tabBarIcon: () => <MaterialIcons name="edit" size={24} />,
+        }}
+      />
+
+      <Tabs.Screen
+        name="calendar"
+        options={{
+          title: "Calendário",
+          tabBarIcon: () => <MaterialIcons name="calendar-today" size={24} />,
         }}
       />
     </Tabs>
