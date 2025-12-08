@@ -27,20 +27,24 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
-        name="form"
-        options={{
-          title: "Formulário",
-          tabBarIcon: () => <MaterialIcons name="edit" size={24} />,
-        }}
-      />
-
-      <Tabs.Screen
         name="calendar"
         options={{
           title: "Calendário",
           tabBarIcon: () => <MaterialIcons name="calendar-today" size={24} />,
         }}
       />
+
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Perfil",
+          tabBarIcon: ({ size, color }) => (
+            <MaterialIcons name="person" size={size} color={color} />
+          ),
+        }}
+      />
+      
+
     </Tabs>
   );
 }

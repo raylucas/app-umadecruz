@@ -1,8 +1,10 @@
+import { UserProvider } from "@/context/UserContext";
 import { Stack } from "expo-router";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useMemo } from "react";
 import { Platform, StatusBar } from "react-native";
 import { Provider as PaperProvider } from "react-native-paper";
+
 import {
   SafeAreaProvider,
   useSafeAreaInsets,
@@ -28,7 +30,10 @@ function AppLayoutInner() {
           headerShown: false,
           contentStyle: { paddingTop },
         }}
-      />
+      >
+        <Stack.Screen name="login" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
     </PaperProvider>
   );
 }
@@ -36,7 +41,9 @@ function AppLayoutInner() {
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
-      <AppLayoutInner />
+      <UserProvider>
+        <AppLayoutInner />
+      </UserProvider>
     </SafeAreaProvider>
   );
 }
