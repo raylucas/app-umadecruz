@@ -1,7 +1,8 @@
 import { useUser } from "@/context/UserContext";
 import { useRouter } from "expo-router";
-import { Dimensions, StyleSheet, View } from "react-native";
-import { Calendar, LocaleConfig } from "react-native-calendars";
+import { useState } from "react";
+import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 
 // Configuração PT-BR
 LocaleConfig.locales["pt-br"] = {
@@ -16,45 +17,105 @@ LocaleConfig.locales["pt-br"] = {
   dayNamesShort: ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"],
   today: "Hoje"
 };
-LocaleConfig.defaultLocale = "pt-br"; // define PT-BR como padrão
+LocaleConfig.defaultLocale = "pt-br";
 
 export default function CalendarScreen() {
   const router = useRouter();
   const { user } = useUser();
+  const { height, width } = Dimensions.get("window");
+  const [highlightedDate, setHighlightedDate] = useState<string | null>(null);
 
-  const handleDayPress = (day: { dateString: string }) => {
+  const numRows = 6; // 6 semanas por mês
+  const cellHeight = height / (numRows + 3);
+
+  const handleDayPress = (day: DateData) => {
     if (!user?.id) {
       alert("Usuário não encontrado");
       return;
     }
 
+    // Atualiza destaque imediato
+    setHighlightedDate(day.dateString);
+
+    // Vai para a tela de evento
     router.push({
       pathname: "../event",
       params: { data: day.dateString },
     });
   };
 
-  const { height } = Dimensions.get("window");
-
   return (
     <View style={styles.container}>
       <Calendar
-        onDayPress={handleDayPress}
-        style={{ height }}
-        hideExtraDays={false} // mostra dias do mês anterior/próximo
+        hideExtraDays={false}
         showWeekNumbers={false}
-        firstDay={1} // semana começa na segunda
+        firstDay={1}
         enableSwipeMonths={true}
         theme={{
           todayTextColor: "#6200ee",
           selectedDayBackgroundColor: "#6200ee",
           monthTextColor: "#6200ee",
           arrowColor: "#6200ee",
-          textDayFontSize: 22,       // aumenta tamanho dos números do dia
-          textDayHeaderFontSize: 18, // aumenta tamanho do cabeçalho dias da semana
-          textMonthFontSize: 24,     // aumenta tamanho do mês/ano no topo
+          textDayFontSize: 18,
+          textDayHeaderFontSize: 16,
+          textMonthFontSize: 22,
           textDisabledColor: "#d9e1e8",
-          textSectionTitleColor: "#6200ee",
+        }}
+        dayComponent={({ date, state, marking }) => {
+          if (!date) return null;
+
+          const isSelected = marking?.selected;
+          const isHighlighted = date.dateString === highlightedDate;
+
+          return (
+            <Pressable
+              onPress={() => handleDayPress(date)}
+              style={{
+                height: cellHeight,
+                width: width / 7,
+                justifyContent: "center",
+                alignItems: "center",
+              }}
+            >
+              {/* Círculo de destaque do dia selecionado */}
+              {isSelected && (
+                <View
+                  style={{
+                    position: "absolute",
+                    width: 40,
+                    height: 40,
+                    borderRadius: 20,
+                    backgroundColor: "#6200ee",
+                  }}
+                />
+              )}
+
+              {/* Círculo rápido de feedback visual */}
+              {!isSelected && isHighlighted && (
+                <View
+                  style={{
+                    position: "absolute",
+                    width: 38,
+                    height: 38,
+                    borderRadius: 19,
+                    borderWidth: 2,
+                    borderColor: "#6200ee",
+                  }}
+                />
+              )}
+
+              <Text
+                style={{
+                  color: state === "disabled" ? "#d9e1e8" : isSelected || isHighlighted ? "#6200ee" : "#000",
+                  fontSize: 16,
+                  textAlign: "center",
+                  zIndex: 1,
+                }}
+              >
+                {date.day}
+              </Text>
+            </Pressable>
+          );
         }}
       />
     </View>
