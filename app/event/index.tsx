@@ -129,7 +129,7 @@ export default function EventFormScreen() {
             onPress={() => router.push("/(tabs)/calendar")}
             style={{ marginTop: 12 }}
         >
-            Voltar para Calendário
+            Voltar
         </Button>
         </ScrollView>
     );

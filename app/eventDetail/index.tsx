@@ -42,7 +42,6 @@ const formatHora = (hora?: string) => {
 export default function EventDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
-
   const eventos: Evento[] = params.eventos
     ? JSON.parse(params.eventos as string)
     : [];
@@ -75,7 +74,7 @@ export default function EventDetailScreen() {
         </Card>
       ))}
 
-      <Button mode="contained" style={{ marginTop: 20 }} onPress={handleBack}>
+      <Button mode="outlined"  style={{ marginTop: 20 }} onPress={handleBack}>
         Voltar
       </Button>
     </ScrollView>

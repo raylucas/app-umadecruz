@@ -49,7 +49,7 @@ export default function CalendarScreen() {
   const fetchEventos = async () => {
     try {
       setLoading(true);
-      const response = await api.get<Evento[]>("/evento");
+      const response = await api.get<Evento[]>("/evento/eventos");
       setEventos(response.data);
     } catch (error) {
       console.error("Erro ao carregar eventos:", error);

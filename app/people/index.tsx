@@ -2,8 +2,8 @@ import { useUser } from "@/context/UserContext";
 import api, { fetchUserById } from "@/services/api";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView } from "react-native";
-import { Button, Text, TextInput } from "react-native-paper";
+import { ScrollView, View } from "react-native";
+import { ActivityIndicator, Button, Text, TextInput } from "react-native-paper";
 import RNPickerSelect from "react-native-picker-select";
 
 export default function PeopleScreen() {
@@ -34,6 +34,10 @@ export default function PeopleScreen() {
   const [congregacao, setCongregacao] = useState("");
   const [endereco, setEndereco] = useState("");
   const [bairro, setBairro] = useState("");
+
+  const [loadingBtn, setLoadingBtn] = useState(false); 
+  const [loading, setLoading] = useState(false); 
+
 
   const cidades = ["Cruzeiro", "Lavrinhas"];
   const congregacoes = ["Sede", "Vila Batista", "Batedor", "Capela do Jacú", "KM 4"];
@@ -66,6 +70,7 @@ export default function PeopleScreen() {
       if (!user?.id) return;
 
       try {
+        setLoading(true); // ✅ loader enquanto carrega
         const userData = await fetchUserById(user.id);
         setUser?.(userData);
 
@@ -81,33 +86,42 @@ export default function PeopleScreen() {
         setCongregacao(userData.congregacao || "");
       } catch (e) {
         console.log("Erro ao carregar dados do usuário:", e);
+      } finally {
+        setLoading(false);
       }
     };
 
     loadUser();
   }, [user?.id]);
 
+    if (loading) return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#6200ee" />
+      </View>
+    );
+
   // Função salvar
   const salvar = async () => {
+    if (!user?.id) {
+      alert("Usuário não encontrado.");
+      return;
+    }
+
+    const body = {
+      id: user.id,
+      nome,
+      dataNascimento: formatarDataParaBackend(dataNasc),
+      telefone,
+      endereco,
+      bairro,
+      cidade,
+      cep,
+      congregacao,
+      dataBatismo: formatarDataParaBackend(dataBatismo),
+    };
+
     try {
-      if (!user?.id) {
-        alert("Usuário não encontrado.");
-        return;
-      }
-
-      const body = {
-        id: user.id,
-        nome,
-        dataNascimento: formatarDataParaBackend(dataNasc),
-        telefone,
-        endereco,
-        bairro,
-        cidade,
-        cep,
-        congregacao,
-        dataBatismo: formatarDataParaBackend(dataBatismo),
-      };
-
+      setLoadingBtn(true); 
       const response = await api.put("/usuario", body);
 
       if (response.status === 200) {
@@ -118,6 +132,8 @@ export default function PeopleScreen() {
     } catch (error) {
       console.error(error);
       alert("Ocorreu um erro ao salvar os dados.");
+    } finally {
+      setLoadingBtn(false); 
     }
   };
 
@@ -173,11 +189,12 @@ export default function PeopleScreen() {
         style={{ marginBottom: 12 }}
       />
 
-      <Button mode="contained" onPress={salvar}>
+      {/* Botão com loader */}
+      <Button mode="contained" onPress={salvar} loading={loadingBtn} disabled={loadingBtn}>
         Salvar
       </Button>
 
-      <Button style={{ marginTop: 20 }} onPress={() => router.back()}>
+      <Button mode="outlined" style={{ marginTop: 20 }} onPress={() => router.back()} disabled={loadingBtn}>
         Voltar
       </Button>
     </ScrollView>
