@@ -35,6 +35,14 @@ export default function TabsLayout() {
       />
 
       <Tabs.Screen
+        name="alert"
+        options={{
+          title: "Avisos",
+          tabBarIcon: () => <MaterialIcons name="notification-important" size={24} />,
+        }}
+      />
+
+      <Tabs.Screen
         name="profile"
         options={{
           title: "Perfil",

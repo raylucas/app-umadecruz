@@ -15,6 +15,8 @@ export default function EventFormScreen() {
     const [descricao, setDescricao] = useState("");
     const [inicio, setInicio] = useState("");
     const [fim, setFim] = useState("");
+    const [loading, setLoading] = useState(false);
+
 
     const formatarDataParaFrontend = (data: string) => {
         if (!data) return "";
@@ -73,17 +75,21 @@ export default function EventFormScreen() {
         };
 
         try {
-        const response = await api.post("/evento", body);
-        if (response.status === 201 || response.status === 200) {
-            alert("Evento cadastrado com sucesso!");
-            router.back();
-        } else {
-            alert("Erro ao cadastrar evento.");
-        }
+            setLoading(true);
+            const response = await api.post("/evento", body);
+            if (response.status === 201 || response.status === 200) {
+                alert("Evento cadastrado com sucesso!");
+                router.back();
+            } else {
+                alert("Erro ao cadastrar evento.");
+            }
         } catch (error) {
-        console.error(error);
-        alert("Ocorreu um erro ao cadastrar o evento.");
+            console.error(error);
+            alert("Ocorreu um erro ao cadastrar o evento.");
+        } finally {
+            setLoading(false);
         }
+        
     };
 
     return (
@@ -114,7 +120,7 @@ export default function EventFormScreen() {
             onChangeText={(v) => setFim(maskHora(v))}
             style={styles.input}
         />
-        <Button mode="contained" onPress={salvarEvento} style={{ marginTop: 20 }}>
+        <Button mode="contained" onPress={salvarEvento} loading={loading} style={{ marginTop: 20 }}>
             Salvar Evento
         </Button>
 

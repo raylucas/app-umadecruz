@@ -1,4 +1,3 @@
-// app/eventDetail/index.tsx
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";

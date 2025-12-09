@@ -29,8 +29,8 @@ type Evento = {
   titulo: string;
   descricao: string;
   data: string;
-  inicio: string; // formato "HH:mm:ss"
-  fim: string;    // formato "HH:mm:ss"
+  inicio: string; 
+  fim: string;    
   usuario: { id: number; nome: string };
 };
 
