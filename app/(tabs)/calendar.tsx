@@ -16,7 +16,7 @@ LocaleConfig.locales["pt-br"] = {
   dayNamesShort: ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"],
   today: "Hoje"
 };
-LocaleConfig.defaultLocale = "pt-br"; // define o padrão PT-BR
+LocaleConfig.defaultLocale = "pt-br"; // define PT-BR como padrão
 
 export default function CalendarScreen() {
   const router = useRouter();
@@ -41,8 +41,8 @@ export default function CalendarScreen() {
       <Calendar
         onDayPress={handleDayPress}
         style={{ height }}
-        hideExtraDays={true} // mostra os dias do mês anterior/próximo
-        showWeekNumbers={false} // opcional, pode ativar se quiser números da semana
+        hideExtraDays={false} // mostra dias do mês anterior/próximo
+        showWeekNumbers={false}
         firstDay={1} // semana começa na segunda
         enableSwipeMonths={true}
         theme={{
@@ -50,9 +50,11 @@ export default function CalendarScreen() {
           selectedDayBackgroundColor: "#6200ee",
           monthTextColor: "#6200ee",
           arrowColor: "#6200ee",
-          textDayFontSize: 16,
-          textMonthFontSize: 22,
-          textDayHeaderFontSize: 16,
+          textDayFontSize: 22,       // aumenta tamanho dos números do dia
+          textDayHeaderFontSize: 18, // aumenta tamanho do cabeçalho dias da semana
+          textMonthFontSize: 24,     // aumenta tamanho do mês/ano no topo
+          textDisabledColor: "#d9e1e8",
+          textSectionTitleColor: "#6200ee",
         }}
       />
     </View>
@@ -61,6 +63,6 @@ export default function CalendarScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
   },
 });
