@@ -1,82 +1,116 @@
-import api from "@/services/api";
-import { useLocalSearchParams } from "expo-router";
-import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
+// app/eventDetail/index.tsx
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback } from "react";
+import { ScrollView, StyleSheet, Text } from "react-native";
+import { Button, Card } from "react-native-paper";
+
+type Usuario = {
+  id: number;
+  nome: string;
+};
+
+type Hora = {
+  hour?: number;
+  minute?: number;
+};
 
 type Evento = {
   id: number;
   titulo: string;
   descricao: string;
   data: string;
-  inicio: { hour: number; minute: number };
-  fim: { hour: number; minute: number };
-  usuario: { nome: string };
+  inicio?: string;
+  fim?: string;
+  usuario: Usuario;
+};
+
+const formatarDataParaFrontend = (data: string) => {
+  if (!data) return "";
+  const partes = data.split("-");
+  if (partes.length === 3) {
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+  }
+  return data;
+};
+
+const formatHora = (hora?: string) => {
+  if (!hora) return "--:--";
+  const partes = hora.split(":");
+  if (partes.length >= 2) return `${partes[0].padStart(2,"0")}:${partes[1].padStart(2,"0")}`;
+  return hora;
 };
 
 export default function EventDetailScreen() {
-    const params = useLocalSearchParams<{ data?: string }>();
-    const [evento, setEvento] = useState<Evento | null>(null);
-    const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const params = useLocalSearchParams();
 
-  useEffect(() => {
-    const fetchEvento = async () => {
-      try {
-        const resp = await api.get<Evento>(`/evento/${id}`);
-        setEvento(resp.data);
-      } catch (error) {
-        console.error(error);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const eventos: Evento[] = params.eventos
+    ? JSON.parse(params.eventos as string)
+    : [];
 
-    if (id) fetchEvento();
-  }, [id]);
-
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#6200ee" />
-      </View>
-    );
-  }
-
-  if (!evento) return <Text style={styles.center}>Evento não encontrado</Text>;
-
-  const formatTime = (t: { hour: number; minute: number }) =>
-    `${String(t.hour).padStart(2, "0")}:${String(t.minute).padStart(2, "0")}`;
-
-  const formatDate = (d: string) => {
-    const [year, month, day] = d.split("-");
-    return `${day}/${month}/${year}`;
-  };
+  const handleBack = useCallback(() => {
+    router.back();
+  }, []);
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.label}>Título:</Text>
-      <Text style={styles.value}>{evento.titulo}</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.header}>
+        {eventos.length > 0
+          ? `Eventos em ${formatarDataParaFrontend(eventos[0].data)}`
+          : "Nenhum evento encontrado"}
+      </Text>
 
-      <Text style={styles.label}>Descrição:</Text>
-      <Text style={styles.value}>{evento.descricao}</Text>
+      {eventos.map((evento) => (
+        <Card key={evento.id} style={styles.card}>
+          <Card.Content>
+            <Text style={styles.title}>{evento.titulo}</Text>
+            <Text style={styles.description}>{evento.descricao}</Text>
+            <Text style={styles.info}>
+              Data: {formatarDataParaFrontend(evento.data)}
+            </Text>
+            <Text style={styles.info}>
+              Início: {formatHora(evento.inicio)} | Fim: {formatHora(evento.fim)}
+            </Text>
+            <Text style={styles.info}>Criado por: {evento.usuario.nome}</Text>
+          </Card.Content>
+        </Card>
+      ))}
 
-      <Text style={styles.label}>Data:</Text>
-      <Text style={styles.value}>{formatDate(evento.data)}</Text>
-
-      <Text style={styles.label}>Início:</Text>
-      <Text style={styles.value}>{formatTime(evento.inicio)}</Text>
-
-      <Text style={styles.label}>Fim:</Text>
-      <Text style={styles.value}>{formatTime(evento.fim)}</Text>
-
-      <Text style={styles.label}>Usuário:</Text>
-      <Text style={styles.value}>{evento.usuario.nome}</Text>
+      <Button mode="contained" style={{ marginTop: 20 }} onPress={handleBack}>
+        Voltar
+      </Button>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16 },
-  label: { fontWeight: "bold", fontSize: 16, marginTop: 12 },
-  value: { fontSize: 16, marginTop: 4 },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
+  container: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#6200ee",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  card: {
+    marginBottom: 12,
+    elevation: 2,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 4,
+  },
+  description: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  info: {
+    fontSize: 14,
+    color: "#555",
+    marginBottom: 2,
+  },
 });

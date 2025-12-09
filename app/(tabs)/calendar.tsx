@@ -1,10 +1,11 @@
 import { useUser } from "@/context/UserContext";
+import api from "@/services/api";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useState } from "react";
-import { Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, Dimensions, Pressable, StyleSheet, Text, View } from "react-native";
 import { Calendar, DateData, LocaleConfig } from "react-native-calendars";
 
-// Configuração PT-BR
 LocaleConfig.locales["pt-br"] = {
   monthNames: [
     "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
@@ -13,44 +14,105 @@ LocaleConfig.locales["pt-br"] = {
   monthNamesShort: [
     "Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"
   ],
-  dayNames: ["Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"],
-  dayNamesShort: ["Dom","Seg","Ter","Qua","Qui","Sex","Sáb"],
+  dayNames: [
+    "Domingo","Segunda","Terça","Quarta","Quinta","Sexta","Sábado"
+  ],
+  dayNamesShort: [
+    "Dom","Seg","Ter","Qua","Qui","Sex","Sáb"
+  ],
   today: "Hoje"
 };
 LocaleConfig.defaultLocale = "pt-br";
+
+type Evento = {
+  id: number;
+  titulo: string;
+  descricao: string;
+  data: string;
+  inicio: string; // formato "HH:mm:ss"
+  fim: string;    // formato "HH:mm:ss"
+  usuario: { id: number; nome: string };
+};
 
 export default function CalendarScreen() {
   const router = useRouter();
   const { user } = useUser();
   const { height, width } = Dimensions.get("window");
+
+  const [eventos, setEventos] = useState<Evento[]>([]);
+  const [loading, setLoading] = useState(true);
   const [highlightedDate, setHighlightedDate] = useState<string | null>(null);
 
-  const numRows = 6; // 6 semanas por mês
+  const numRows = 6;
   const cellHeight = height / (numRows + 3);
 
-  const handleDayPress = (day: DateData) => {
-    if (!user?.id) {
-      alert("Usuário não encontrado");
-      return;
+  const fetchEventos = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get<Evento[]>("/evento");
+      setEventos(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar eventos:", error);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Atualiza destaque imediato
+  useFocusEffect(
+    useCallback(() => {
+      fetchEventos();
+    }, [])
+  );
+
+  const markedDates: Record<string, any> = {};
+  eventos.forEach((evento) => {
+    markedDates[evento.data] = { marked: true, dotColor: "#6200ee" };
+  });
+
+  const handleDayPress = (day: DateData) => {
+    if (!user?.id) return;
+
     setHighlightedDate(day.dateString);
 
-    // Vai para a tela de evento
-    router.push({
-      pathname: "../event",
-      params: { data: day.dateString },
-    });
+    const eventosDoDia = eventos.filter(e => e.data === day.dateString);
+
+    if (eventosDoDia.length > 0) {
+      // Existem eventos → abrir detalhes
+      router.push({
+        pathname: "../../eventDetail",
+        params: { eventos: JSON.stringify(eventosDoDia) },
+      });
+    } else {
+      // Nenhum evento → decidir pelo role
+      if (user.tipo === "ADMIN") {
+        router.push({
+          pathname: "../../event",
+          params: { data: day.dateString },
+        });
+      } else {
+        router.push({
+          pathname: "../../eventDetail",
+          params: { eventos: JSON.stringify([]) }, // sem eventos
+        });
+      }
+    }
   };
+
+  if (loading) return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <ActivityIndicator size="large" color="#6200ee" />
+    </View>
+  );
 
   return (
     <View style={styles.container}>
+      <Text style={styles.title}>Eventos UMADECRUZ</Text>
       <Calendar
         hideExtraDays={false}
         showWeekNumbers={false}
         firstDay={1}
         enableSwipeMonths={true}
+        markedDates={markedDates}
         theme={{
           todayTextColor: "#6200ee",
           selectedDayBackgroundColor: "#6200ee",
@@ -63,9 +125,22 @@ export default function CalendarScreen() {
         }}
         dayComponent={({ date, state, marking }) => {
           if (!date) return null;
-
-          const isSelected = marking?.selected;
           const isHighlighted = date.dateString === highlightedDate;
+          const hasEvento = marking?.marked;
+
+          let backgroundColor = "transparent";
+          let borderColor = "transparent";
+          let textColor = "#000";
+
+          if (hasEvento) {
+            backgroundColor = "#6200ee";
+            textColor = "#fff";
+          } else if (isHighlighted) {
+            borderColor = "#6200ee";
+            textColor = "#000";
+          } else if (state === "disabled") {
+            textColor = "#d9e1e8";
+          }
 
           return (
             <Pressable
@@ -77,36 +152,22 @@ export default function CalendarScreen() {
                 alignItems: "center",
               }}
             >
-              {/* Círculo de destaque do dia selecionado */}
-              {isSelected && (
-                <View
-                  style={{
-                    position: "absolute",
-                    width: 40,
-                    height: 40,
-                    borderRadius: 20,
-                    backgroundColor: "#6200ee",
-                  }}
-                />
-              )}
-
-              {/* Círculo rápido de feedback visual */}
-              {!isSelected && isHighlighted && (
+              {(hasEvento || isHighlighted) && (
                 <View
                   style={{
                     position: "absolute",
                     width: 38,
                     height: 38,
                     borderRadius: 19,
-                    borderWidth: 2,
-                    borderColor: "#6200ee",
+                    backgroundColor: hasEvento ? backgroundColor : "transparent",
+                    borderWidth: isHighlighted && !hasEvento ? 2 : 0,
+                    borderColor: isHighlighted && !hasEvento ? borderColor : "transparent",
                   }}
                 />
               )}
-
               <Text
                 style={{
-                  color: state === "disabled" ? "#d9e1e8" : isSelected || isHighlighted ? "#6200ee" : "#000",
+                  color: textColor,
                   fontSize: 16,
                   textAlign: "center",
                   zIndex: 1,
@@ -123,7 +184,12 @@ export default function CalendarScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
+  container: { flex: 1 },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginVertical: 16,
+    color: "#6200ee",
   },
 });

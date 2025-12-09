@@ -15,7 +15,8 @@ type Usuario = {
   cidade: string;
   cep: string;
   congregacao: string;
-  dataBatismo: string
+  dataBatismo: string;
+  tipo: string;
 };
 
 type JwtPayload = {

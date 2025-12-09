@@ -94,9 +94,11 @@ export default function EventFormScreen() {
             label="Descrição"
             value={descricao}
             onChangeText={setDescricao}
-            style={styles.input}
+            style={[styles.input, styles.textarea]} // aplica estilo maior
             multiline
-        />
+            numberOfLines={6} // altura inicial, pode ajustar
+            textAlignVertical="top" // faz o texto começar do topo
+            />
         <TextInput
             label="Início (HH:MM)"
             value={inicio}
@@ -136,10 +138,14 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     dateText: {
-        fontSize: 24, // aumento do destaque
+        fontSize: 24,
         fontWeight: "bold",
         color: "#6200ee",
         marginBottom: 16,
         textAlign: "center",
+    },
+    textarea: {
+        minHeight: 120, 
+        paddingTop: 10,
     },
 });

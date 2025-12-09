@@ -29,7 +29,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="calendar"
         options={{
-          title: "Calendário",
+          title: "Eventos",
           tabBarIcon: () => <MaterialIcons name="calendar-today" size={24} />,
         }}
       />
