@@ -2,7 +2,7 @@ import { useUser } from "@/context/UserContext";
 import api, { fetchUserById } from "@/services/api";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
 import { ActivityIndicator, Button, Text, TextInput } from "react-native-paper";
 import RNPickerSelect from "react-native-picker-select";
 
@@ -139,7 +139,7 @@ export default function PeopleScreen() {
 
   return (
     <ScrollView style={{ flex: 1 }} contentContainerStyle={{ padding: 20 }}>
-      <Text style={{ fontSize: 24, marginBottom: 20 }}>Editar Dados</Text>
+      <Text style={styles.header}> Editar Dados </Text>
 
       <TextInput label="Nome" value={nome} onChangeText={setNome} style={{ marginBottom: 12 }} />
       <TextInput label="Email" value={email} onChangeText={setEmail} style={{ marginBottom: 12 }} />
@@ -200,3 +200,13 @@ export default function PeopleScreen() {
     </ScrollView>
   );
 }
+
+const styles = StyleSheet.create({
+  header: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#6200ee",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+});

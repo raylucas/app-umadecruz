@@ -32,6 +32,16 @@ export default function ProfileScreen() {
           Editar Dados
         </Button>
 
+        <Button mode="contained" onPress={() => router.push("../changePassword")}>
+          Alterar Senha
+        </Button>
+
+        {user?.tipo === "ADMIN" && (
+          <Button mode="contained" onPress={() => router.push("../user")}>
+            Criar Novo Usuário
+          </Button>
+        )}
+
         <Button mode="contained-tonal" onPress={logout}>
           Logout
         </Button>
