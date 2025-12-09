@@ -8,6 +8,14 @@ type Usuario = {
   id: number;
   nome: string;
   email: string;
+  dataNascimento: string;
+  telefone: string;
+  endereco: string;
+  bairro: string;
+  cidade: string;
+  cep: string;
+  congregacao: string;
+  dataBatismo: string
 };
 
 type JwtPayload = {

@@ -15,4 +15,14 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+export const fetchUserById = async (userId: number) => {
+  try {
+    const response = await api.get(`/usuario/id/${userId}`);
+    return response.data; 
+  } catch (error: any) {
+    console.error("Falha ao buscar usuário:", error.response?.data ?? error.message);
+    throw error; 
+  }
+};
+
 export default api;

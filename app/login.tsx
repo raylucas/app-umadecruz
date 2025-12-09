@@ -1,6 +1,6 @@
 // app/login.tsx
 import { useUser } from "@/context/UserContext"; // seu context (assumindo que exista)
-import api from "@/services/api";
+import api, { fetchUserById } from "@/services/api";
 import { saveToken } from "@/services/auth";
 import { router } from "expo-router";
 import { jwtDecode } from "jwt-decode";
@@ -52,14 +52,13 @@ export default function LoginScreen() {
       const decoded = jwtDecode<JwtPayload>(token);
       const userId = Number(decoded.id);
 
-      try {
-        const userResp = await api.get(`/usuario/id/${userId}`);
-        const userData = userResp.data;
+     try {
+        const userData = await fetchUserById(userId);
         if (userContext?.setUser) {
           userContext.setUser(userData);
         }
-      } catch (e: any) {
-        console.log("Falha ao buscar usuário após login:", e.response?.data ?? e.message);
+      } catch (e) {
+        console.log("Falha ao buscar usuário após login:", e);
       }
 
       router.replace("/(tabs)");
