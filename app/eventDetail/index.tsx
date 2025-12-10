@@ -1,7 +1,9 @@
+import api from "@/services/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text } from "react-native";
 import { Button, Card } from "react-native-paper";
+
 
 type Usuario = {
   id: number;
@@ -42,13 +44,67 @@ const formatHora = (hora?: string) => {
 export default function EventDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const [presencas, setPresencas] = useState<{ [idEvento: number]: boolean }>({});
+  const [loadingBtn, setLoadingBtn] = useState<{ [idEvento: number]: boolean }>({});
+  const [carregandoPresenca, setCarregandoPresenca] = useState<{ [idEvento: number]: boolean }>({});
+
+
   const eventos: Evento[] = params.eventos
     ? JSON.parse(params.eventos as string)
     : [];
 
+  const usuarioLogadoId = eventos.length > 0 ? eventos[0].usuario.id : 0;
+
+  // -------- VERIFICAR PRESENÇA --------
+  const verificarPresenca = async (idEvento: number) => {
+    setCarregandoPresenca(prev => ({ ...prev, [idEvento]: true }));
+
+    try {
+      await api.get(`/evento/${idEvento}/usuario/${usuarioLogadoId}`);
+      setPresencas(prev => ({ ...prev, [idEvento]: true }));
+    } catch (error: any) {
+      if (error.response?.status === 404) {
+        setPresencas(prev => ({ ...prev, [idEvento]: false }));
+      }
+    } finally {
+      setCarregandoPresenca(prev => ({ ...prev, [idEvento]: false }));
+    }
+  };
+
+  useEffect(() => {
+    eventos.forEach((e) => verificarPresenca(e.id));
+  }, []);
+
   const handleBack = useCallback(() => {
     router.back();
   }, []);
+
+  const marcarPresenca = async (idEvento: number) => {
+
+    const body = {
+      idEvento,
+      idUsuario: usuarioLogadoId,
+    };
+
+    try {
+
+      setLoadingBtn((prev) => ({ ...prev, [idEvento]: true }));
+      const response = await api.post("/evento/usuario/presenca", body);
+
+      if (response.status === 200) {
+        alert("Presença registrada com sucesso!");
+        setPresencas((prev) => ({ ...prev, [idEvento]: true }));
+      }
+      else{
+        alert("Falha ao marcar presença");
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Falha ao marcar presença");
+    } finally {
+      setLoadingBtn((prev) => ({ ...prev, [idEvento]: false }));
+    }
+  };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -58,21 +114,44 @@ export default function EventDetailScreen() {
           : "Nenhum evento encontrado"}
       </Text>
 
-      {eventos.map((evento) => (
-        <Card key={evento.id} style={styles.card}>
-          <Card.Content>
-            <Text style={styles.title}>{evento.titulo}</Text>
-            <Text style={styles.description}>{evento.descricao}</Text>
-            <Text style={styles.info}>
-              Data: {formatarDataParaFrontend(evento.data)}
-            </Text>
-            <Text style={styles.info}>
-              Início: {formatHora(evento.inicio)} | Fim: {formatHora(evento.fim)}
-            </Text>
-            <Text style={styles.info}>Criado por: {evento.usuario.nome}</Text>
-          </Card.Content>
-        </Card>
-      ))}
+      {eventos.map((evento) => {
+        const jaFui = presencas[evento.id] === true;
+        return (
+          <Card key={evento.id} style={styles.card}>
+            <Card.Content>
+              <Text style={styles.title}>{evento.titulo}</Text>
+              <Text style={styles.description}>{evento.descricao}</Text>
+              <Text style={styles.info}>
+                Data: {formatarDataParaFrontend(evento.data)}
+              </Text>
+              <Text style={styles.info}>
+                Início: {formatHora(evento.inicio)} | Fim: {formatHora(evento.fim)}
+              </Text>
+              <Text style={styles.info}>Criado por: {evento.usuario.nome}</Text>
+
+              {carregandoPresenca[evento.id] ? (
+                <Button mode="contained" loading style={{ marginTop: 10, backgroundColor: "#bdc3c7" }}>
+                  Carregando...
+                </Button>
+              ) : (
+                <Button
+                  mode="contained"
+                  style={{
+                    marginTop: 10,
+                    backgroundColor: presencas[evento.id] ? "#3498db" : "#2ecc71",
+                    opacity: jaFui ? 1 : 1,
+                  }}
+                  labelStyle={{ color: "#fff" }}
+                  disabled={presencas[evento.id]}
+                  onPress={() => marcarPresenca(evento.id)}
+                >
+                  {presencas[evento.id] ? "🎉 Eu fui" : "Marcar Presença"}
+                </Button>
+              )}
+                          </Card.Content>
+          </Card>
+        );
+      })}
 
       <Button mode="outlined"  style={{ marginTop: 20 }} onPress={handleBack}>
         Voltar
