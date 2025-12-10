@@ -1,7 +1,7 @@
 import api from "@/services/api";
 import { getToken, removeToken } from "@/services/auth";
 import { router } from "expo-router";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode"; // ajuste aqui
 import { createContext, ReactNode, useContext, useEffect, useState } from "react";
 
 type Usuario = {
@@ -30,6 +30,7 @@ type UserContextType = {
   setUser: (u: Usuario | null) => void;
   loadUser: () => Promise<void>;
   logout: () => Promise<void>;
+  loading: boolean; // ✅ adiciona loading no tipo
 };
 
 type Props = {
@@ -41,10 +42,12 @@ const UserContext = createContext<UserContextType>({
   setUser: () => {},
   loadUser: async () => {},
   logout: async () => {},
+  loading: true, // ✅ valor inicial
 });
 
 export function UserProvider({ children }: Props) {
   const [user, setUser] = useState<Usuario | null>(null);
+  const [loading, setLoading] = useState(true);
 
   async function loadUser() {
     try {
@@ -58,6 +61,8 @@ export function UserProvider({ children }: Props) {
       setUser(resp.data);
     } catch (error) {
       console.log("Erro ao carregar usuário:", error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -72,7 +77,7 @@ export function UserProvider({ children }: Props) {
   }
 
   return (
-    <UserContext.Provider value={{ user, setUser, loadUser, logout }}>
+    <UserContext.Provider value={{ user, setUser, loadUser, logout, loading }}>
       {children}
     </UserContext.Provider>
   );

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "691993094396",
+    "project_id": "umadecruz-56cd5",
+    "storage_bucket": "umadecruz-56cd5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691993094396:android:aea8b88fc693b177818f79",
+        "android_client_info": {
+          "package_name": "com.umadecruz"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBJ2uM4U6pgzuD9zAGVwUF84remU2MS8ew"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

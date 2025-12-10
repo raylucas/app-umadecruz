@@ -1,30 +1,22 @@
-import { UserProvider } from "@/context/UserContext";
+import { UserProvider, useUser } from "@/context/UserContext";
 import { Stack } from "expo-router";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
 import { useMemo } from "react";
-import { Platform, StatusBar } from "react-native";
+import { ActivityIndicator, Platform, StatusBar, View } from "react-native";
 import { Provider as PaperProvider } from "react-native-paper";
+import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 
-import {
-  SafeAreaProvider,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-
+// Layout interno que não usa useUser()
 function AppLayoutInner() {
   const insets = useSafeAreaInsets();
-
   const paddingTop = useMemo(
-    () =>
-      Platform.OS === "android"
-        ? StatusBar.currentHeight ?? insets.top
-        : insets.top,
+    () => (Platform.OS === "android" ? StatusBar.currentHeight ?? insets.top : insets.top),
     [insets.top]
   );
 
   return (
     <PaperProvider>
       <ExpoStatusBar style="dark" />
-
       <Stack
         screenOptions={{
           headerShown: false,
@@ -38,11 +30,26 @@ function AppLayoutInner() {
   );
 }
 
+// Wrapper que usa useUser() **após** UserProvider
+function AppLayoutWrapper() {
+  const { loading } = useUser();
+
+  if (loading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  return <AppLayoutInner />;
+}
+
 export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <UserProvider>
-        <AppLayoutInner />
+        <AppLayoutWrapper />
       </UserProvider>
     </SafeAreaProvider>
   );

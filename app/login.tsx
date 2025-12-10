@@ -1,15 +1,15 @@
-// app/login.tsx
-import { useUser } from "@/context/UserContext"; // seu context (assumindo que exista)
+import { useUser } from "@/context/UserContext";
 import api, { fetchUserById } from "@/services/api";
 import { saveToken } from "@/services/auth";
+import * as Notifications from "expo-notifications";
 import { router } from "expo-router";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
-import { View } from "react-native";
+import { Platform, View } from "react-native";
 import { Button, HelperText, TextInput } from "react-native-paper";
 
 type JwtPayload = {
-  sub: string; 
+  sub: string;
   id?: string;
   role?: string;
 };
@@ -29,20 +29,48 @@ export default function LoginScreen() {
     }
   })();
 
+  async function registrarTokenFCM(userId: number) {
+    try {
+      // 🔹 Garantir permissão
+      let { status } = await Notifications.getPermissionsAsync();
+      if (status !== "granted") {
+        const req = await Notifications.requestPermissionsAsync();
+        if (req.status !== "granted") {
+          console.log("Permissão de notificação negada.");
+          return;
+        }
+      }
+
+      // 🔹 Token FCM (Android) ou APNS (iOS)
+      const { data: fcmToken } = await Notifications.getDevicePushTokenAsync();
+
+      if (!fcmToken) {
+        console.log("Token FCM ainda não disponível.");
+        return;
+      }
+
+      // 🔹 Salvar no backend
+      await api.post("/token", {
+        idUsuario: userId,
+        token: fcmToken,
+        plataforma: Platform.OS.toUpperCase(),
+      });
+
+    } catch (e) {
+      console.log("Erro ao registrar FCM:", e);
+    }
+  }
+
   async function login() {
     setErrorMsg(null);
     setLoading(true);
 
     try {
-      const resp = await api.post("/auth/login", {
-        email,
-        senha,
-      });
+      const resp = await api.post("/auth/login", { email, senha });
 
       const token: string = resp.data?.token;
       if (!token) {
-        console.log("Resposta do login sem token:", resp.data);
-        setErrorMsg("Resposta inválida do servidor (token).");
+        setErrorMsg("Resposta inválida do servidor.");
         setLoading(false);
         return;
       }
@@ -52,24 +80,23 @@ export default function LoginScreen() {
       const decoded = jwtDecode<JwtPayload>(token);
       const userId = Number(decoded.id);
 
-     try {
+      // 🔥 Registrar token FCM
+      await registrarTokenFCM(userId);
+
+      try {
         const userData = await fetchUserById(userId);
-        if (userContext?.setUser) {
-          userContext.setUser(userData);
-        }
+        userContext?.setUser?.(userData);
       } catch (e) {
         console.log("Falha ao buscar usuário após login:", e);
       }
 
       router.replace("/(tabs)");
     } catch (e: any) {
-      console.log("ERRO NO LOGIN - response:", e.response?.data ?? null);
-      console.log("ERRO NO LOGIN - message:", e.message);
-
       const msg =
         e.response?.data?.message ||
         e.response?.data?.error ||
-        (e.message ? String(e.message) : "Credenciais inválidas");
+        e.message ||
+        "Credenciais inválidas";
 
       setErrorMsg(msg);
     } finally {
@@ -104,11 +131,11 @@ export default function LoginScreen() {
         style={{ marginBottom: 8 }}
       />
 
-      {errorMsg ? (
-        <HelperText type="error" visible={true} style={{ marginBottom: 8 }}>
+      {errorMsg && (
+        <HelperText type="error" visible style={{ marginBottom: 8 }}>
           {errorMsg}
         </HelperText>
-      ) : null}
+      )}
 
       <Button mode="contained" onPress={login} disabled={isDisabled}>
         {loading ? "Entrando..." : "Entrar"}

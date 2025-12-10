@@ -1,9 +1,22 @@
+import { useUser } from "@/context/UserContext";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Tabs } from "expo-router";
+import { router, Tabs } from "expo-router";
+import { useEffect } from "react";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (!user) {
+      router.replace("/login");
+    }
+  }, [user]);
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <Tabs
@@ -18,6 +31,7 @@ export default function TabsLayout() {
         },
       }}
     >
+      
       <Tabs.Screen
         name="index"
         options={{
@@ -51,8 +65,6 @@ export default function TabsLayout() {
           ),
         }}
       />
-      
-
     </Tabs>
   );
 }

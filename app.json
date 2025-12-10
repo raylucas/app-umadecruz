@@ -9,7 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.umadecruz",
+      "googleServicesFile": "./app/ios/GoogleService-Info.plist"
     },
     "android": {
       "adaptiveIcon": {
@@ -19,7 +21,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.umadecruz",
+      "googleServicesFile": "./app/android/google-services.json",
+      "useNextNotificationsApi": true
     },
     "web": {
       "output": "static",
@@ -39,11 +44,23 @@
           }
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png"
+        }
+      ],
       "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "f55784a5-1eec-40fd-8b9b-76c35ce63435"
+      }
     }
   }
 }
