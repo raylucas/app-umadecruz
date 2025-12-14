@@ -1,7 +1,8 @@
 import { useUser } from "@/context/UserContext";
 import api from "@/services/api";
+import { useFocusEffect } from "@react-navigation/native";
 import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, View } from "react-native";
 import { Card, Text } from "react-native-paper";
 
@@ -24,35 +25,39 @@ type Aviso = {
 export default function HomeScreen() {
   const router = useRouter();
   const { user } = useUser();
+
   const [eventos, setEventos] = useState<Evento[]>([]);
   const [avisos, setAvisos] = useState<Aviso[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        const [eventosRes, avisosRes] = await Promise.all([
-          api.get<Evento[]>("/evento/eventos/semana"),
-          api.get<Aviso[]>("/aviso/avisos/hoje"),
-        ]);
+  const fetchHomeData = async () => {
+    try {
+      setLoading(true);
 
-        setEventos(eventosRes.data);
-        setAvisos(avisosRes.data);
-      } catch (e) {
-        console.error("Erro ao carregar dados:", e);
-      } finally {
-        setLoading(false);
-      }
-    };
+      const [eventosRes, avisosRes] = await Promise.all([
+        api.get<Evento[]>("/evento/eventos/semana"),
+        api.get<Aviso[]>("/aviso/avisos/hoje"),
+      ]);
 
-    fetchData();
-  }, []);
+      setEventos(eventosRes.data);
+      setAvisos(avisosRes.data);
+    } catch (error) {
+      console.error("Erro ao carregar dados da Home:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchHomeData();
+    }, [])
+  );
 
   const formatarData = (data: string) => {
+    if (!data) return "";
     const [year, month, day] = data.split("-").map(Number);
-    const d = new Date(year, month - 1, day); // month é 0-index
-    return d.toLocaleDateString("pt-BR");
+    return new Date(year, month - 1, day).toLocaleDateString("pt-BR");
   };
 
   if (loading) {
@@ -73,7 +78,7 @@ export default function HomeScreen() {
 
       <View style={styles.separator} />
 
-      {/* Eventos da semana */}
+      {/* Eventos */}
       <Text style={styles.sectionTitle}>Eventos da Semana</Text>
       {eventos.length > 0 ? (
         eventos.map((evento) => (
@@ -86,7 +91,6 @@ export default function HomeScreen() {
                 params: { eventos: JSON.stringify([evento]) },
               })
             }
-            elevation={3}
           >
             <Card.Content>
               <Text style={styles.cardTitle}>{evento.titulo}</Text>
@@ -103,7 +107,7 @@ export default function HomeScreen() {
 
       <View style={styles.separator} />
 
-      {/* Avisos do dia */}
+      {/* Avisos */}
       <Text style={styles.sectionTitle}>Aviso do Dia</Text>
       {avisos.length > 0 ? (
         avisos.map((aviso) => (
@@ -151,44 +155,34 @@ const styles = StyleSheet.create({
     fontSize: 32,
     fontWeight: "bold",
     color: "#ff6f61",
-    textShadowColor: "#aaa",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
   },
   sectionTitle: {
     fontSize: 22,
     fontWeight: "600",
     marginTop: 20,
     marginBottom: 12,
-    color: "#333",
   },
   card: {
     marginBottom: 12,
     padding: 8,
     borderRadius: 12,
-    elevation: 3,
   },
   cardTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 4,
   },
   cardDate: {
     fontSize: 14,
     color: "#555",
-    marginBottom: 6,
   },
   noDataText: {
-    fontSize: 16,
-    fontStyle: "italic",
-    color: "#999",
-    marginBottom: 12,
     textAlign: "center",
+    color: "#999",
+    fontStyle: "italic",
   },
   separator: {
     height: 1,
     backgroundColor: "#ccc",
-    borderRadius: 1,
-    marginVertical: 16, 
+    marginVertical: 16,
   },
 });

@@ -19,7 +19,7 @@ export async function registerForPushNotificationsAsync() {
     return null;
   }
 
-  let { status: existingStatus } = await Notifications.getPermissionsAsync();
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
   let finalStatus = existingStatus;
 
   if (existingStatus !== "granted") {
@@ -31,10 +31,9 @@ export async function registerForPushNotificationsAsync() {
     console.log("Permissão negada para notificações");
     return null;
   }
-  
-  const tokenResponse = await Notifications.getExpoPushTokenAsync({
-    projectId: "966947c0-fc19-45fe-a971-faca0f92c8bd",
-  });
+
+  const tokenResponse = await Notifications.getDevicePushTokenAsync();
+  console.log("🔥 FCM TOKEN:", tokenResponse.data);
 
   return tokenResponse.data;
 }

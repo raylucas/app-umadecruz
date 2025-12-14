@@ -57,6 +57,7 @@
       "reactCompiler": true
     },
     "extra": {
+      "API_URL": "https://app-umadecruz-backend.onrender.com",
       "router": {},
       "eas": {
         "projectId": "f55784a5-1eec-40fd-8b9b-76c35ce63435"

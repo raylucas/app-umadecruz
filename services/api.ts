@@ -1,14 +1,20 @@
 import axios from "axios";
+import Constants from "expo-constants";
 import { getToken } from "./auth";
 
+const API_URL =
+  Constants.expoConfig?.extra?.API_URL ??
+  "https://app-umadecruz-backend.onrender.com";
+
 const api = axios.create({
-  baseURL: "http://192.168.0.164:8080",
+  baseURL: API_URL,
+  timeout: 15000,
 });
 
 api.interceptors.request.use(async (config) => {
   const token = await getToken();
 
-  if (token) {
+  if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
