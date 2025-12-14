@@ -1,3 +1,4 @@
+import { useSnackbar } from "@/context/SnackbarContext";
 import { useUser } from "@/context/UserContext";
 import api, { fetchUserById } from "@/services/api";
 import { router } from "expo-router";
@@ -41,6 +42,8 @@ export default function PeopleScreen() {
 
   const cidades = ["Cruzeiro", "Lavrinhas"];
   const congregacoes = ["Sede", "Vila Batista", "Batedor", "Capela do Jacú", "KM 4"];
+
+  const { showSnackbar } = useSnackbar();
 
   // Máscaras
   const maskTelefone = (text: string) => {
@@ -103,7 +106,7 @@ export default function PeopleScreen() {
   // Função salvar
   const salvar = async () => {
     if (!user?.id) {
-      alert("Usuário não encontrado.");
+      showSnackbar("Usuário não encontrado.");
       return;
     }
 
@@ -125,13 +128,13 @@ export default function PeopleScreen() {
       const response = await api.put("/usuario", body);
 
       if (response.status === 200) {
-        alert("Dados salvos com sucesso!");
+        showSnackbar("Dados salvos com sucesso!");
       } else {
-        alert("Erro ao salvar os dados.");
+        showSnackbar("Erro ao salvar os dados.");
       }
     } catch (error) {
       console.error(error);
-      alert("Ocorreu um erro ao salvar os dados.");
+      showSnackbar("Ocorreu um erro ao salvar os dados.");
     } finally {
       setLoadingBtn(false); 
     }

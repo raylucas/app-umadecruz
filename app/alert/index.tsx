@@ -2,71 +2,103 @@ import { useUser } from "@/context/UserContext";
 import api from "@/services/api";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Alert, ScrollView, StyleSheet, Text, TextInput } from "react-native";
-import { Button } from "react-native-paper";
+import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Button, Snackbar } from "react-native-paper";
 
 export default function CreateAvisoScreen() {
   const router = useRouter();
   const { user } = useUser();
-  
+
   const [titulo, setTitulo] = useState("");
   const [corpo, setCorpo] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
+  const [snackbarMsg, setSnackbarMsg] = useState("");
+
   const handleSubmit = async () => {
     if (!titulo || !corpo) {
-      Alert.alert("Erro", "Preencha todos os campos");
+      setSnackbarMsg("Preencha todos os campos");
+      setSnackbarVisible(true);
       return;
     }
 
-    const hoje = new Date();
-
     const body = {
-        titulo,
-        corpo,
-        dataCriacao: hoje,
-        idUsuario: user?.id,
+      titulo,
+      corpo,
+      dataCriacao: new Date(),
+      idUsuario: user?.id,
     };
 
     try {
-        setLoading(true);
-        await api.post("/aviso", body);
-        Alert.alert("Sucesso", "Aviso criado com sucesso!");
-        router.back(); 
+      setLoading(true);
+      await api.post("/aviso", body);
+
+      setSnackbarMsg("🔔 Aviso criado com sucesso");
+      setSnackbarVisible(true);
+
+      // volta após mostrar feedback
+      setTimeout(() => {
+        router.back();
+      }, 800);
+
     } catch (error) {
-        console.error(error);
-        Alert.alert("Erro", "Não foi possível criar o aviso");
+      console.error(error);
+      setSnackbarMsg("Erro ao criar aviso");
+      setSnackbarVisible(true);
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.header}>Criar Aviso</Text>
+    <View style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.header}>Criar Aviso</Text>
 
-      <TextInput
-        style={styles.input}
-        placeholder="Título"
-        value={titulo}
-        onChangeText={setTitulo}
-      />
-      <TextInput
-        style={[styles.input, { height: 100 }]}
-        placeholder="Corpo do aviso"
-        value={corpo}
-        onChangeText={setCorpo}
-        multiline
-      />
+        <TextInput
+          style={styles.input}
+          placeholder="Título"
+          value={titulo}
+          onChangeText={setTitulo}
+        />
 
-      <Button mode="contained" onPress={handleSubmit} loading={loading} disabled={loading}>
-        Criar
-      </Button>
+        <TextInput
+          style={[styles.input, { height: 100 }]}
+          placeholder="Corpo do aviso"
+          value={corpo}
+          onChangeText={setCorpo}
+          multiline
+        />
 
-      <Button mode="outlined" style={{ marginTop: 12 }} onPress={() => router.back()}>
-        Voltar
-      </Button>
-    </ScrollView>
+        <Button
+          mode="contained"
+          onPress={handleSubmit}
+          loading={loading}
+          disabled={loading}
+        >
+          Criar
+        </Button>
+
+        <Button
+          mode="outlined"
+          style={{ marginTop: 12 }}
+          onPress={() => router.back()}
+        >
+          Voltar
+        </Button>
+      </ScrollView>
+
+      {/* 🔔 Banner in-app */}
+      <Snackbar
+        visible={snackbarVisible}
+        onDismiss={() => setSnackbarVisible(false)}
+        duration={3000}
+        style={{ backgroundColor: "#6200ee" }}
+      >
+        {snackbarMsg}
+      </Snackbar>
+    </View>
   );
 }
 

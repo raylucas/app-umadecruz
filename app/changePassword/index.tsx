@@ -1,9 +1,11 @@
+import { useSnackbar } from "@/context/SnackbarContext";
 import { useUser } from "@/context/UserContext";
 import api from "@/services/api";
 import { router } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Button, Text, TextInput } from "react-native-paper";
+
 
 const ChangePasswordScreen = () => {
   const { user } = useUser();
@@ -19,6 +21,9 @@ const ChangePasswordScreen = () => {
   const [showSenhaAntiga, setShowSenhaAntiga] = useState(false);
   const [showNovaSenha, setShowNovaSenha] = useState(false);
   const [showConfirmarSenha, setShowConfirmarSenha] = useState(false);
+
+  const { showSnackbar } = useSnackbar();
+
 
   const validarSenha = (senha: string) => {
     const regex = /^(?=.*[A-Za-z])(?=.*\d).{6,}$/;
@@ -38,11 +43,11 @@ const ChangePasswordScreen = () => {
 
   const handleAlterarSenha = async () => {
     if (!senhaValida) {
-      Alert.alert("Erro", "A nova senha não atende aos critérios mínimos.");
+      showSnackbar("A nova senha não atende aos critérios mínimos.");
       return;
     }
     if (!senhaConfere) {
-      Alert.alert("Erro", "A nova senha e a confirmação não coincidem.");
+      showSnackbar("A nova senha e a confirmação não coincidem.");
       return;
     }
 
@@ -53,13 +58,13 @@ const ChangePasswordScreen = () => {
         senhaAntiga,
         novaSenha,
       });
-      Alert.alert("Sucesso", "Senha alterada com sucesso!");
+      showSnackbar("Senha alterada com sucesso!");
       setSenhaAntiga("");
       setNovaSenha("");
       setConfirmarSenha("");
     } catch (error: any) {
       console.log(error.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível alterar a senha.");
+      showSnackbar("Não foi possível alterar a senha.");
     } finally {
       setLoading(false);
     }

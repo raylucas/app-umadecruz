@@ -1,9 +1,10 @@
+import { useSnackbar } from "@/context/SnackbarContext";
 import { useUser } from "@/context/UserContext";
 import api from "@/services/api";
 import * as Clipboard from "expo-clipboard";
 import { router } from "expo-router";
 import React, { useCallback, useState } from "react";
-import { Alert, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { Button, Dialog, IconButton, Portal, Text, TextInput } from "react-native-paper";
 import RNPickerSelect from "react-native-picker-select";
 
@@ -22,9 +23,11 @@ const UserScreen = () => {
   const [dialogVisible, setDialogVisible] = useState(false);
   const [showSenha, setShowSenha] = useState(false);
 
+  const { showSnackbar } = useSnackbar();
+
   const handleCriarUsuario = async () => {
     if (!nome || !email || !tipo) {
-      Alert.alert("Atenção", "Preencha todos os campos.");
+      showSnackbar("Preencha todos os campos.");
       return;
     }
 
@@ -45,7 +48,7 @@ const UserScreen = () => {
       }
     } catch (error: any) {
       console.log(error.response?.data || error.message);
-      Alert.alert("Erro", "Não foi possível criar o usuário.");
+      showSnackbar("Não foi possível criar o usuário.");
     } finally {
       setLoading(false);
     }

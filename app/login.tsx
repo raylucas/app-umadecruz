@@ -1,12 +1,13 @@
+import { useSnackbar } from "@/context/SnackbarContext"; // Importando SnackbarContext
 import { useUser } from "@/context/UserContext";
 import api, { fetchUserById } from "@/services/api";
 import { saveToken } from "@/services/auth";
 import * as Notifications from "expo-notifications";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
 import { jwtDecode } from "jwt-decode";
 import { useState } from "react";
 import { Platform, View } from "react-native";
-import { Button, HelperText, TextInput } from "react-native-paper";
+import { Button, TextInput } from "react-native-paper";
 
 type JwtPayload = {
   sub: string;
@@ -15,19 +16,14 @@ type JwtPayload = {
 };
 
 export default function LoginScreen() {
+  const router = useRouter();
+const { user, setUser } = useUser();
+  const { showSnackbar } = useSnackbar(); // Usando o showSnackbar
+
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [errorMsg, setErrorMsg] = useState<string | null>(null);
-
-  const userContext = (() => {
-    try {
-      return useUser();
-    } catch {
-      return null as any;
-    }
-  })();
 
   async function registrarTokenFCM(userId: number) {
     try {
@@ -62,7 +58,6 @@ export default function LoginScreen() {
   }
 
   async function login() {
-    setErrorMsg(null);
     setLoading(true);
 
     try {
@@ -70,7 +65,7 @@ export default function LoginScreen() {
 
       const token: string = resp.data?.token;
       if (!token) {
-        setErrorMsg("Resposta inválida do servidor.");
+        showSnackbar("Resposta inválida do servidor."); // Exibindo mensagem de erro com Snackbar
         setLoading(false);
         return;
       }
@@ -85,7 +80,7 @@ export default function LoginScreen() {
 
       try {
         const userData = await fetchUserById(userId);
-        userContext?.setUser?.(userData);
+        setUser(userData);
       } catch (e) {
         console.log("Falha ao buscar usuário após login:", e);
       }
@@ -98,7 +93,7 @@ export default function LoginScreen() {
         e.message ||
         "Credenciais inválidas";
 
-      setErrorMsg(msg);
+      showSnackbar(msg); // Exibindo mensagem de erro com Snackbar
     } finally {
       setLoading(false);
     }
@@ -130,12 +125,6 @@ export default function LoginScreen() {
         }
         style={{ marginBottom: 8 }}
       />
-
-      {errorMsg && (
-        <HelperText type="error" visible style={{ marginBottom: 8 }}>
-          {errorMsg}
-        </HelperText>
-      )}
 
       <Button mode="contained" onPress={login} disabled={isDisabled}>
         {loading ? "Entrando..." : "Entrar"}

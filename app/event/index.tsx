@@ -1,9 +1,11 @@
+import { useSnackbar } from "@/context/SnackbarContext";
 import { useUser } from "@/context/UserContext";
 import api from "@/services/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StyleSheet } from "react-native";
 import { Button, Text, TextInput } from "react-native-paper";
+
 
 export default function EventFormScreen() {
     const { user } = useUser();
@@ -17,6 +19,7 @@ export default function EventFormScreen() {
     const [fim, setFim] = useState("");
     const [loading, setLoading] = useState(false);
 
+    const { showSnackbar } = useSnackbar();
 
     const formatarDataParaFrontend = (data: string) => {
         if (!data) return "";
@@ -43,12 +46,12 @@ export default function EventFormScreen() {
 
     const salvarEvento = async () => {
         if (!user?.id) {
-        alert("Usuário não encontrado");
+        showSnackbar("Usuário não encontrado");
         return;
         }
 
         if (!inicio || !fim) {
-            alert("Preencha os horários de início e fim.");
+            showSnackbar("Preencha os horários de início e fim.");
             return;
         }
 
@@ -56,12 +59,12 @@ export default function EventFormScreen() {
         const fimMin = horaEmMinutos(fim);
 
         if (inicioMin === -1 || fimMin === -1) {
-            alert("Horários inválidos. Use o formato HH:MM.");
+            showSnackbar("Horários inválidos. Use o formato HH:MM.");
             return;
         }
 
         if (fimMin <= inicioMin) {
-            alert("O horário de fim deve ser maior que o horário de início.");
+            showSnackbar("O horário de fim deve ser maior que o horário de início.");
             return;
          }
 
@@ -78,14 +81,14 @@ export default function EventFormScreen() {
             setLoading(true);
             const response = await api.post("/evento", body);
             if (response.status === 201 || response.status === 200) {
-                alert("Evento cadastrado com sucesso!");
+                showSnackbar("Evento cadastrado com sucesso!");
                 router.back();
             } else {
-                alert("Erro ao cadastrar evento.");
+                showSnackbar("Erro ao cadastrar evento.");
             }
         } catch (error) {
             console.error(error);
-            alert("Ocorreu um erro ao cadastrar o evento.");
+            showSnackbar("Ocorreu um erro ao cadastrar o evento..");
         } finally {
             setLoading(false);
         }

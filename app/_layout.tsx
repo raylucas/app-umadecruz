@@ -1,3 +1,4 @@
+import { SnackbarProvider } from "@/context/SnackbarContext";
 import { UserProvider, useUser } from "@/context/UserContext";
 import { Stack } from "expo-router";
 import { StatusBar as ExpoStatusBar } from "expo-status-bar";
@@ -5,6 +6,7 @@ import { useMemo } from "react";
 import { ActivityIndicator, Platform, StatusBar, View } from "react-native";
 import { Provider as PaperProvider } from "react-native-paper";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+
 
 // Layout interno que não usa useUser()
 function AppLayoutInner() {
@@ -49,7 +51,9 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <UserProvider>
-        <AppLayoutWrapper />
+        <SnackbarProvider>
+          <AppLayoutWrapper />
+        </SnackbarProvider>
       </UserProvider>
     </SafeAreaProvider>
   );

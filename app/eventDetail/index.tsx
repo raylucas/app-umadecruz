@@ -1,3 +1,4 @@
+import { useSnackbar } from "@/context/SnackbarContext";
 import api from "@/services/api";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
@@ -48,6 +49,7 @@ export default function EventDetailScreen() {
   const [loadingBtn, setLoadingBtn] = useState<{ [idEvento: number]: boolean }>({});
   const [carregandoPresenca, setCarregandoPresenca] = useState<{ [idEvento: number]: boolean }>({});
 
+  const { showSnackbar } = useSnackbar();
 
   const eventos: Evento[] = params.eventos
     ? JSON.parse(params.eventos as string)
@@ -92,15 +94,14 @@ export default function EventDetailScreen() {
       const response = await api.post("/evento/usuario/presenca", body);
 
       if (response.status === 200) {
-        alert("Presença registrada com sucesso!");
+        showSnackbar("Presença registrada com sucesso!");
         setPresencas((prev) => ({ ...prev, [idEvento]: true }));
       }
       else{
-        alert("Falha ao marcar presença");
+        showSnackbar("Falha ao marcar presença");
       }
     } catch (error) {
-      console.error(error);
-      alert("Falha ao marcar presença");
+      showSnackbar("Falha ao marcar presença");
     } finally {
       setLoadingBtn((prev) => ({ ...prev, [idEvento]: false }));
     }
